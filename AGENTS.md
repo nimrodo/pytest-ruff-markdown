@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Workflow
+
+Never commit directly to `main`. Always work on a feature branch and open a PR.
+
 ## Agent skills
 
 ### Issue tracker

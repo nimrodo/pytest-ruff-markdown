@@ -11,11 +11,15 @@ from .blocks import CodeBlock
 
 
 class RuffViolations(Exception):
+    """Raised by a pytest item when `ruff` reports violations for its Block."""
+
     def __init__(self, violations: list[dict[str, Any]]) -> None:
+        """Store the raw `ruff --output-format=json` violation records."""
         self.violations = violations
 
 
 def lint_block(block: CodeBlock, markdown_path: Path) -> list[dict[str, Any]]:
+    """Run `ruff check` on block as an isolated file, returning any violations."""
     padded_source = "\n" * (block.start_line - 1) + block.source
     stdin_filename = markdown_path.resolve().parent / (
         f"{markdown_path.stem}__block{block.index}.py"

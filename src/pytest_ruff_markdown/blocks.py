@@ -20,6 +20,7 @@ class CodeBlock:
         index: int,
         skip_reason: str | None = None,
     ) -> None:
+        """Store a fenced block's source alongside its markdown position."""
         self.source = source
         # 1-indexed line, in the original markdown file, of the block's own
         # first line of content (not the ``` fence line).
@@ -34,6 +35,7 @@ class CodeBlock:
 
 
 def extract_python_blocks(markdown_text: str) -> list[CodeBlock]:
+    """Extract every ```python/```py fenced Block from markdown_text, in order."""
     lines = markdown_text.splitlines()
     blocks: list[CodeBlock] = []
     i = 0

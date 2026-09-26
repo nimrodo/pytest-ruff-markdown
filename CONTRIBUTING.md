@@ -1,5 +1,19 @@
 # Contributing
 
+## Development
+
+Set up the environment with `uv sync`, then:
+
+```
+uv run pytest                 # run the test suite
+uv run ruff check .           # lint
+uv run ruff format --check .  # check formatting (drop --check to apply it)
+uv run ty check .             # type-check
+```
+
+`ty` is pre-1.0 and pinned to an exact version in `pyproject.toml` for that
+reason — bump it deliberately, not via a loose range.
+
 ## Validating against a local checkout
 
 To manually check the plugin against a real project without adding it as a dependency, run it from your checkout with `uv run --with`:

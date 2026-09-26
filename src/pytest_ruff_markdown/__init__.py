@@ -95,6 +95,12 @@ def lint_block(block: CodeBlock, markdown_path: Path) -> list[dict[str, Any]]:
             "--stdin-filename",
             str(stdin_filename),
             "--output-format=json",
+            # D100 (missing module docstring) is a category error against a
+            # Block: a fenced snippet structurally cannot have a module
+            # docstring, so this fires unconditionally regardless of the
+            # user's own `select` config.
+            "--extend-ignore",
+            "D100",
         ],
         input=padded_source,
         capture_output=True,

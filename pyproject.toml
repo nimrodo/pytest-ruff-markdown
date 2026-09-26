@@ -7,7 +7,7 @@ authors = [
     { name = "Nimrod Oren", email = "nimrodo@gmail.com" }
 ]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = ["ruff>=0.4.0"]
 
 [project.entry-points.pytest11]
 ruff_markdown = "pytest_ruff_markdown"

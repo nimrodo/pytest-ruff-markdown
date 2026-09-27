@@ -14,6 +14,14 @@ uv run ty check .             # type-check
 `ty` is pre-1.0 and pinned to an exact version in `pyproject.toml` for that
 reason — bump it deliberately, not via a loose range.
 
+## Versioning
+
+This project follows [semantic versioning](https://semver.org/)
+(`MAJOR.MINOR.PATCH`). There is no version-bump tooling: a release is a
+deliberate, manual edit to the `version` field in `pyproject.toml`, chosen
+according to semver rules based on the nature of the changes since the
+last release.
+
 ## Validating against a local checkout
 
 To manually check the plugin against a real project without adding it as a dependency, run it from your checkout with `uv run --with`:

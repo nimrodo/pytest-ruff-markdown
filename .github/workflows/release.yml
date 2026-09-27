@@ -24,9 +24,10 @@ jobs:
     environment: release
     steps:
       - name: Resolve release tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          TAG="${{ inputs.tag }}"
-          echo "RELEASE_TAG=${TAG:-$GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=${INPUT_TAG:-$GITHUB_REF_NAME}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v4
         with:
@@ -37,11 +38,17 @@ jobs:
 
       - name: Verify tag matches package version
         run: |
-          PKG_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
           if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Tag $RELEASE_TAG is not a bare vMAJOR.MINOR.PATCH tag" >&2
             exit 1
           fi
+
+          PKG_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          if [[ ! "$PKG_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "pyproject.toml version $PKG_VERSION is not a bare MAJOR.MINOR.PATCH string" >&2
+            exit 1
+          fi
+
           TAG_VERSION="${RELEASE_TAG#v}"
           if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
             echo "Tag $RELEASE_TAG does not match pyproject.toml version $PKG_VERSION" >&2

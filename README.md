@@ -34,6 +34,26 @@ consequences of that:
 
   placed immediately above the fence.
 
+  For genuinely sequential, tutorial-style docs (step 2 builds on step 1),
+  you can instead opt a block into sharing the preceding block's source as
+  context, with:
+
+  ```
+  <!-- pytest-ruff-markdown: continues -->
+  ```
+
+  placed immediately above the fence. The marked block is linted alongside
+  the source of all preceding *consecutive* `continues`-marked blocks
+  (walking backward until a block without the marker), so it no longer
+  fails `F821`/`F401` for names/imports established there. Chaining is
+  cumulative: a third block that `continues` from a second block that
+  itself `continues` from a first sees all three blocks' source. Each
+  block is still collected and reported as its own independent pytest
+  item, and a violation located in the *prepended* context is attributed
+  to the block that introduced it, not to the block continuing from it. A
+  `continues` marker on a file's first block (nothing to continue from) is
+  a collection error, not a silent no-op.
+
 Each block is piped into `ruff` under a synthetic filename of the form
 `{markdown-stem}__block{N}.py`, resolved inside the same real directory as
 the source Markdown file (e.g. `docs/tutorial.md`'s second block becomes

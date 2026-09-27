@@ -18,9 +18,35 @@ class RuffViolations(Exception):
         self.violations = violations
 
 
+def _chain(block: CodeBlock) -> list[CodeBlock]:
+    """Return block's `continues` chain, from its root ancestor to itself."""
+    chain: list[CodeBlock] = []
+    current: CodeBlock | None = block
+    while current is not None:
+        chain.append(current)
+        current = current.continues_from
+    chain.reverse()
+    return chain
+
+
+def _padded_chain_source(chain: list[CodeBlock]) -> str:
+    """Concatenate chain's Blocks at their real markdown line positions."""
+    last = chain[-1]
+    total_lines = max(last.start_line + len(last.source.splitlines()) - 1, 0)
+    buffer = [""] * total_lines
+    for member in chain:
+        for offset, line in enumerate(member.source.splitlines()):
+            buffer[member.start_line - 1 + offset] = line
+    return "\n".join(buffer)
+
+
 def lint_block(block: CodeBlock, markdown_path: Path) -> list[dict[str, Any]]:
-    """Run `ruff check` on block as an isolated file, returning any violations."""
-    padded_source = "\n" * (block.start_line - 1) + block.source
+    """Run `ruff check` on block plus any `continues` context.
+
+    Returns only the violations attributable to block's own lines.
+    """
+    chain = _chain(block)
+    padded_source = _padded_chain_source(chain)
     stdin_filename = markdown_path.resolve().parent / (
         f"{markdown_path.stem}__block{block.index}.py"
     )
@@ -47,4 +73,12 @@ def lint_block(block: CodeBlock, markdown_path: Path) -> list[dict[str, Any]]:
     )
     if proc.returncode not in (0, 1):
         raise RuntimeError(f"ruff failed unexpectedly: {proc.stderr}")
-    return json.loads(proc.stdout or "[]")
+    violations: list[dict[str, Any]] = json.loads(proc.stdout or "[]")
+
+    block_start = block.start_line
+    block_end = block_start + len(block.source.splitlines()) - 1
+    return [
+        violation
+        for violation in violations
+        if block_start <= (violation.get("location") or {}).get("row", -1) <= block_end
+    ]

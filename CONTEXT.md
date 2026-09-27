@@ -9,7 +9,7 @@ A single ` ```python `/` ```py ` fenced code sample extracted from a Markdown fi
 _Avoid_: snippet, fence, code sample (as a synonym for the collected/linted unit)
 
 **Isolated linting**:
-The model where each block is linted entirely on its own, with no visibility into any other block in the same file or any surrounding prose. This is the plugin's default and only linting model.
+The model where each block is linted entirely on its own, with no visibility into any other block in the same file or any surrounding prose. This is the plugin's default for every block; a block can opt out of it for its preceding chain via the Continues Marker.
 _Avoid_: standalone linting, per-snippet linting
 
 **Synthetic filename**:
@@ -19,3 +19,7 @@ _Avoid_: virtual filename, stdin filename (as the user-facing term — that's th
 **Skip marker**:
 The `<!-- pytest-ruff-markdown: skip -->` HTML comment placed immediately above a fence. Excludes that one block from linting entirely (the pytest item still exists and is reported, but as skipped). The sanctioned way to opt a specific, legitimately-fragmentary example out of checking.
 _Avoid_: ignore marker, exclude comment
+
+**Continues marker**:
+The `<!-- pytest-ruff-markdown: continues -->` HTML comment placed immediately above a fence. Opts that block into being linted with the source of all preceding *consecutive* continues-marked blocks prepended as context (walking backward to the nearest block without the marker), so it can reference a name/import established there without a false-positive `F821`/`F401`. Chaining is cumulative and transitive; each block in a chain is still collected and reported as its own independent pytest item, and a violation in the prepended context is attributed to the block that introduced it, never to the block continuing from it. A marker on a file's first block (no preceding block to continue from) is a collection error.
+_Avoid_: continuation marker, chain marker (as the user-facing term — "continues" is the marker's literal keyword)

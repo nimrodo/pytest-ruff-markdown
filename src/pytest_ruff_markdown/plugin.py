@@ -32,7 +32,7 @@ class MarkdownFile(pytest.File):
     def collect(self) -> Any:
         """Yield a MarkdownCodeBlockItem for every Block in this file."""
         text = self.path.read_text(encoding="utf-8")
-        for block in extract_python_blocks(text):
+        for block in extract_python_blocks(text, source_name=str(self.path)):
             yield MarkdownCodeBlockItem.from_parent(
                 self,
                 name=f"L{block.start_line}",

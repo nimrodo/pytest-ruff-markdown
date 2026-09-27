@@ -78,10 +78,10 @@ uv run pytest-ruff-markdown-format docs/tutorial.md
 ```
 
 Pass one or more files or directories (directories are searched recursively
-for `.md` files). Blocks marked with the Skip Marker are left untouched.
-For CI, use `--check` (exit nonzero if anything needs reformatting, without
-writing) or `--diff` (same, but also print a unified diff), mirroring
-`ruff format --check`/`--diff` itself:
+for `.md` files). A block marked with `<!-- pytest-ruff-markdown: skip -->`
+is left untouched. For CI, use `--check` (exit nonzero if anything needs
+reformatting, without writing) or `--diff` (same, but also print a unified
+diff), mirroring `ruff format --check`/`--diff` itself:
 
 ```
 uv run pytest-ruff-markdown-format --check docs/

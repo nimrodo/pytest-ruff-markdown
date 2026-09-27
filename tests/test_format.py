@@ -39,6 +39,15 @@ def test_skip_marked_block_is_not_reformatted():
     assert new_text == markdown_text
 
 
+def test_crlf_file_keeps_crlf_line_endings():
+    markdown_text = "# Doc\r\n\r\n```python\r\nx=1\r\n```\r\n"
+
+    new_text, changed = format_markdown_text(markdown_text, Path("example.md"))
+
+    assert changed
+    assert new_text == "# Doc\r\n\r\n```python\r\nx = 1\r\n```\r\n"
+
+
 def test_only_the_unformatted_block_changes_others_are_preserved():
     markdown_text = (
         "# Doc\n\n"

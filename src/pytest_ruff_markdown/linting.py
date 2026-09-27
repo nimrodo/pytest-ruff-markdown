@@ -7,7 +7,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from .blocks import CodeBlock
+from .blocks import CodeBlock, synthetic_filename
 
 
 class RuffViolations(Exception):
@@ -47,9 +47,6 @@ def lint_block(block: CodeBlock, markdown_path: Path) -> list[dict[str, Any]]:
     """
     chain = _chain(block)
     padded_source = _padded_chain_source(chain)
-    stdin_filename = markdown_path.resolve().parent / (
-        f"{markdown_path.stem}__block{block.index}.py"
-    )
 
     proc = subprocess.run(
         [
@@ -57,7 +54,7 @@ def lint_block(block: CodeBlock, markdown_path: Path) -> list[dict[str, Any]]:
             "check",
             "-",
             "--stdin-filename",
-            str(stdin_filename),
+            str(synthetic_filename(block, markdown_path)),
             "--output-format=json",
             # D100 (missing module docstring) is a category error against a
             # Block: a fenced snippet structurally cannot have a module

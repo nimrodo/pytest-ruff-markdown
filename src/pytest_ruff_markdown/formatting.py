@@ -1,22 +1,11 @@
-"""Reformats a markdown file's Blocks via a real `ruff format` subprocess.
-
-Unlike linting, formatting doesn't need the Continues Marker's chain
-context: it's style-only and never affects name resolution, so every Block
-is formatted in isolation regardless of its `continues_from`.
-"""
+"""Reformats a markdown file's Blocks via a real `ruff format` subprocess."""
 
 from __future__ import annotations
 
 import subprocess
 from pathlib import Path
 
-from .blocks import CodeBlock, extract_python_blocks
-
-
-def _stdin_filename(block: CodeBlock, markdown_path: Path) -> Path:
-    return markdown_path.resolve().parent / (
-        f"{markdown_path.stem}__block{block.index}.py"
-    )
+from .blocks import extract_python_blocks, synthetic_filename
 
 
 def format_block_source(source: str, stdin_filename: Path) -> str:
@@ -41,6 +30,10 @@ def format_markdown_text(markdown_text: str, markdown_path: Path) -> tuple[str, 
     """
     blocks = extract_python_blocks(markdown_text, source_name=str(markdown_path))
     lines = markdown_text.splitlines()
+    # str.splitlines() discards the original line-ending style; remember it
+    # so the rebuilt text stays byte-for-byte faithful outside changed
+    # Blocks, including on a CRLF file.
+    newline = "\r\n" if "\r\n" in markdown_text else "\n"
     changed = False
     # Splice from the bottom up: a Block whose formatted output has a
     # different line count shifts every line index after it, but never one
@@ -50,14 +43,14 @@ def format_markdown_text(markdown_text: str, markdown_path: Path) -> tuple[str, 
             continue
         original_lines = block.source.splitlines()
         formatted_lines = format_block_source(
-            block.source, _stdin_filename(block, markdown_path)
+            block.source, synthetic_filename(block, markdown_path)
         ).splitlines()
         if formatted_lines == original_lines:
             continue
         changed = True
         start = block.start_line - 1
         lines[start : start + len(original_lines)] = formatted_lines
-    new_text = "\n".join(lines)
+    new_text = newline.join(lines)
     if markdown_text.endswith("\n"):
-        new_text += "\n"
+        new_text += newline
     return new_text, changed

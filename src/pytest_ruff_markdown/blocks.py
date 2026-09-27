@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 _FENCE_START_RE = re.compile(r"^```(?:python|py)\s*$")
 _FENCE_END_RE = re.compile(r"^```\s*$")
@@ -85,3 +86,10 @@ def extract_python_blocks(
         else:
             i += 1
     return blocks
+
+
+def synthetic_filename(block: CodeBlock, markdown_path: Path) -> Path:
+    """Return block's Synthetic filename, resolved against markdown_path's dir."""
+    return markdown_path.resolve().parent / (
+        f"{markdown_path.stem}__block{block.index}.py"
+    )

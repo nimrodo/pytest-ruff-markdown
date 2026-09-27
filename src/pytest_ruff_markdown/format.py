@@ -1,11 +1,4 @@
-"""Console-script entry point for reformatting markdown files.
-
-Rewrites (or, with `--check`/`--diff`, reports on) every non-Skip-Marked
-Block's `ruff format` output in place, across the given markdown
-files/directories. This lives outside the pytest plugin itself: `ruff
-format` is a mutation, not a check, so there's no pytest outcome that
-represents "I reformatted your file" (see issue #24).
-"""
+"""Console-script entry point: reformats a markdown file's Blocks via `ruff format`."""
 
 from __future__ import annotations
 

@@ -1,6 +1,7 @@
 # pytest-ruff-markdown
 
 [![CI](https://github.com/nimrodo/pytest-ruff-markdown/actions/workflows/ci.yml/badge.svg)](https://github.com/nimrodo/pytest-ruff-markdown/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/pytest-ruff-markdown.svg)](https://pypi.org/project/pytest-ruff-markdown/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A pytest plugin that lints ```python``` / ```py``` fenced code blocks in Markdown files with [ruff](https://docs.astral.sh/ruff/). Each fenced block in a collected `.md` file becomes its own pytest item.

@@ -12,6 +12,9 @@ dependencies = ["ruff>=0.4.0"]
 [project.entry-points.pytest11]
 ruff_markdown = "pytest_ruff_markdown"
 
+[project.scripts]
+pytest-ruff-markdown-format = "pytest_ruff_markdown.format:main"
+
 [build-system]
 requires = ["uv_build>=0.12.18,<0.13.0"]
 build-backend = "uv_build"

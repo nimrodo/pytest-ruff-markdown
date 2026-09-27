@@ -31,7 +31,18 @@ last release.
 3. The `Release` workflow (`.github/workflows/release.yml`) triggers on the
    tag push, verifies the tag matches `pyproject.toml`, builds the
    package, and publishes it to PyPI via `uv publish` using PyPI's
-   trusted publishing (OIDC) — no token is stored in this repo.
+   trusted publishing (OIDC) — no token is stored in this repo. It waits
+   for manual approval in the `release` environment before publishing.
+
+**A failed release can't be retried under the same version.** PyPI never
+allows re-uploading a given version number, even after a failed or
+partial publish. If a release run fails, don't re-push the same tag —
+bump `PATCH` and cut a new tag instead.
+
+**Retrying a run without re-tagging** (e.g. a transient publish failure
+where the version itself was never accepted by PyPI): trigger the
+`Release` workflow manually via `workflow_dispatch` with the existing
+tag as input, instead of re-tagging.
 
 ## Validating against a local checkout
 

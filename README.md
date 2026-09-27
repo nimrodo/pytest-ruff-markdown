@@ -66,3 +66,23 @@ code, without any plugin-specific configuration:
 [tool.ruff.lint.per-file-ignores]
 "docs/*.py" = ["I001"]
 ```
+
+## Formatting blocks
+
+`ruff check` (linting) runs as part of the pytest suite, but `ruff format`
+is a mutation, not a check, so it doesn't fit as a pytest item. Instead, a
+separate console script reformats blocks in place:
+
+```
+uv run pytest-ruff-markdown-format docs/tutorial.md
+```
+
+Pass one or more files or directories (directories are searched recursively
+for `.md` files). A block marked with `<!-- pytest-ruff-markdown: skip -->`
+is left untouched. For CI, use `--check` (exit nonzero if anything needs
+reformatting, without writing) or `--diff` (same, but also print a unified
+diff), mirroring `ruff format --check`/`--diff` itself:
+
+```
+uv run pytest-ruff-markdown-format --check docs/
+```

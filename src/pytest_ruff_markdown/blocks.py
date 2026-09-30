@@ -14,7 +14,30 @@ _SKIP_MARKER_RE = re.compile(r"^<!--\s*pytest-ruff-markdown:\s*skip\s*-->\s*$")
 _CONTINUES_MARKER_RE = re.compile(
     r"^<!--\s*pytest-ruff-markdown:\s*continues\s*-->\s*$"
 )
+_LINE_WITH_ENDING_RE = re.compile(r"[^\n]*\n|[^\n]+")
 _SKIP_REASON = "excluded via `pytest-ruff-markdown: skip`"
+
+
+def split_lines_keepends(text: str) -> list[str]:
+    r"""Split text into lines, each keeping its own `\n` or `\r\n` ending.
+
+    Unlike `str.splitlines()`, only those two endings separate lines: form
+    feed, NEL, U+2028 and friends are ordinary text as far as Markdown, and
+    the line numbers editors and pytest show, are concerned.
+    """
+    return _LINE_WITH_ENDING_RE.findall(text)
+
+
+def strip_line_ending(line: str) -> str:
+    r"""Remove one trailing `\n` or `\r\n` from line."""
+    return (
+        line.removesuffix("\r\n") if line.endswith("\r\n") else line.removesuffix("\n")
+    )
+
+
+def split_lines(text: str) -> list[str]:
+    """Split text into lines without their endings (see split_lines_keepends)."""
+    return [strip_line_ending(line) for line in split_lines_keepends(text)]
 
 
 class ContinuesMarkerError(Exception):
@@ -56,6 +79,11 @@ class CodeBlock:
         # forming a chain; linting walks it to build up context.
         self.continues_from = continues_from
 
+    @property
+    def lines(self) -> list[str]:
+        """The block's own lines, trailing blank ones included."""
+        return self.source.split("\n") if self.end_line >= self.start_line else []
+
 
 def _closes_fence(line: str, marker: str) -> bool:
     """Whether line closes a fence opened with marker (CommonMark rules)."""
@@ -82,7 +110,7 @@ def extract_python_blocks(
     markdown_text: str, *, source_name: str = "<markdown>"
 ) -> list[CodeBlock]:
     """Extract every ```python/```py fenced Block from markdown_text, in order."""
-    lines = markdown_text.splitlines()
+    lines = split_lines(markdown_text)
     blocks: list[CodeBlock] = []
     i = 0
     while i < len(lines):

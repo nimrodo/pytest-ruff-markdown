@@ -34,7 +34,7 @@ def _padded_chain_source(chain: list[CodeBlock]) -> str:
     last = chain[-1]
     buffer = [""] * last.end_line
     for member in chain:
-        for offset, line in enumerate(member.source.splitlines()):
+        for offset, line in enumerate(member.lines):
             buffer[member.start_line - 1 + offset] = line
     # A real file ends with a newline; without one ruff flags W292 on every
     # Block. An empty Block stays an empty file.

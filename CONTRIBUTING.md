@@ -25,7 +25,7 @@ last release.
 ## Releasing
 
 1. On `main`, with CI green, bump `version` in `pyproject.toml` per semver
-   and commit it.
+   and add the release's entry to `CHANGELOG.md`, then commit both.
 2. Tag that commit `vX.Y.Z` (matching the new version) and push the tag:
    `git tag vX.Y.Z && git push origin vX.Y.Z`.
 3. The `Release` workflow (`.github/workflows/release.yml`) triggers on the

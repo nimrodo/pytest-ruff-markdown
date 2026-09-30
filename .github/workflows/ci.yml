@@ -7,9 +7,15 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Ubuntu keeps the original `test (<python>)` name because branch protection
+    # requires exactly those checks; other OSes get the OS in the name.
+    name: ${{ matrix.os == 'ubuntu-latest' && format('test ({0})', matrix.python-version) || format('test ({0}, {1})', matrix.os, matrix.python-version) }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      # Let every OS/version finish, so a Windows-only failure doesn't hide others.
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest]
         python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4

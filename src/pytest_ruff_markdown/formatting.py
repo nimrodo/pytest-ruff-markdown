@@ -2,21 +2,15 @@
 
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
 
+from ._ruff import run_ruff
 from .blocks import extract_python_blocks, synthetic_filename
 
 
 def format_block_source(source: str, stdin_filename: Path) -> str:
     """Run `ruff format -` on source, returning ruff's formatted output."""
-    proc = subprocess.run(
-        ["ruff", "format", "-", "--stdin-filename", str(stdin_filename)],
-        input=source,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    proc = run_ruff(["format", "-", "--stdin-filename", str(stdin_filename)], source)
     if proc.returncode != 0:
         raise RuntimeError(f"ruff format failed unexpectedly: {proc.stderr}")
     return proc.stdout

@@ -5,8 +5,11 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-_FENCE_START_RE = re.compile(r"^```(?:python|py)\s*$")
-_FENCE_END_RE = re.compile(r"^```\s*$")
+# CommonMark allows a fence to be indented up to 3 spaces; its info string
+# (everything after the marker) may not contain a backtick when the marker is
+# made of backticks.
+_FENCE_RE = re.compile(r"^( {0,3})(`{3,}|~{3,})(.*)$")
+_PYTHON_INFO = frozenset({"python", "py"})
 _SKIP_MARKER_RE = re.compile(r"^<!--\s*pytest-ruff-markdown:\s*skip\s*-->\s*$")
 _CONTINUES_MARKER_RE = re.compile(
     r"^<!--\s*pytest-ruff-markdown:\s*continues\s*-->\s*$"
@@ -54,6 +57,27 @@ class CodeBlock:
         self.continues_from = continues_from
 
 
+def _closes_fence(line: str, marker: str) -> bool:
+    """Whether line closes a fence opened with marker (CommonMark rules)."""
+    stripped = line.rstrip()
+    indent = len(stripped) - len(stripped.lstrip(" "))
+    body = stripped.lstrip(" ")
+    return (
+        indent <= 3
+        and len(body) >= len(marker)
+        and body == body[0] * len(body)
+        and body[0] == marker[0]
+    )
+
+
+def _find_fence_end(lines: list[str], content_start: int, marker: str) -> int:
+    """Return the index of the line closing the fence, or len(lines) if none."""
+    j = content_start
+    while j < len(lines) and not _closes_fence(lines[j], marker):
+        j += 1
+    return j
+
+
 def extract_python_blocks(
     markdown_text: str, *, source_name: str = "<markdown>"
 ) -> list[CodeBlock]:
@@ -62,36 +86,42 @@ def extract_python_blocks(
     blocks: list[CodeBlock] = []
     i = 0
     while i < len(lines):
-        if _FENCE_START_RE.match(lines[i]):
-            content_start = i + 1
-            j = content_start
-            while j < len(lines) and not _FENCE_END_RE.match(lines[j]):
-                j += 1
-            marker_line = lines[i - 1] if i > 0 else ""
-            skip_reason = _SKIP_REASON if _SKIP_MARKER_RE.match(marker_line) else None
-            continues_from: CodeBlock | None = None
-            if _CONTINUES_MARKER_RE.match(marker_line):
-                if not blocks:
-                    raise ContinuesMarkerError(
-                        f"{source_name}: Block at line {content_start + 1} is "
-                        "marked `pytest-ruff-markdown: continues` but is the "
-                        "first Block in the file -- there is no preceding "
-                        "Block to continue from"
-                    )
-                continues_from = blocks[-1]
-            blocks.append(
-                CodeBlock(
-                    source="\n".join(lines[content_start:j]),
-                    start_line=content_start + 1,
-                    end_line=j,
-                    index=len(blocks) + 1,
-                    skip_reason=skip_reason,
-                    continues_from=continues_from,
-                )
-            )
-            i = j + 1
-        else:
+        fence = _FENCE_RE.match(lines[i])
+        if fence is None or (fence[2][0] == "`" and "`" in fence[3]):
             i += 1
+            continue
+        indent, marker, info = fence[1], fence[2], fence[3].strip()
+        content_start = i + 1
+        j = _find_fence_end(lines, content_start, marker)
+        # Every fence is tracked so one nested in another is skipped along
+        # with its parent, but only an unindented backtick python fence
+        # yields a Block.
+        if indent or marker[0] != "`" or info not in _PYTHON_INFO:
+            i = j + 1
+            continue
+        marker_line = lines[i - 1] if i > 0 else ""
+        skip_reason = _SKIP_REASON if _SKIP_MARKER_RE.match(marker_line) else None
+        continues_from: CodeBlock | None = None
+        if _CONTINUES_MARKER_RE.match(marker_line):
+            if not blocks:
+                raise ContinuesMarkerError(
+                    f"{source_name}: Block at line {content_start + 1} is "
+                    "marked `pytest-ruff-markdown: continues` but is the "
+                    "first Block in the file -- there is no preceding "
+                    "Block to continue from"
+                )
+            continues_from = blocks[-1]
+        blocks.append(
+            CodeBlock(
+                source="\n".join(lines[content_start:j]),
+                start_line=content_start + 1,
+                end_line=j,
+                index=len(blocks) + 1,
+                skip_reason=skip_reason,
+                continues_from=continues_from,
+            )
+        )
+        i = j + 1
     return blocks
 
 

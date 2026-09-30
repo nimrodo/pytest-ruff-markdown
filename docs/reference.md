@@ -40,6 +40,10 @@ fails `F821`/`F401` for names/imports established there.
   independent pytest item.
 - A violation located in the *prepended* context is attributed to the block
   that introduced it, not to the block continuing from it.
+- The [format CLI](#pytest-ruff-markdown-format-cli) treats a chain the same
+  way: its blocks are formatted together as one unit, so a fragment that is
+  only valid in context (such as an indented method body after a class block)
+  formats cleanly.
 - A `continues` marker on a file's first block (nothing to continue from) is
   a collection error, not a silent no-op.
 
@@ -83,6 +87,11 @@ uv run pytest-ruff-markdown-format docs/tutorial.md
   and virtualenvs (any directory containing `pyvenv.cfg`). A directory
   given explicitly is always searched.
 - A block marked with the [skip marker](#skip-marker) is left untouched.
+- A [`continues`](#continues-marker) chain is formatted as one unit. Each
+  block's own lines are rewritten and nothing else changes. A chain that
+  fails to format is reported once, at the block ruff blamed, and left
+  untouched. A skip-marked block in a chain is context only: it is never
+  rewritten, and errors in it are not reported.
 - A block `ruff format` cannot parse is reported as `path:line: ...` on
   stderr and left as it is; the other blocks are still formatted, and the
   exit code is `2`.

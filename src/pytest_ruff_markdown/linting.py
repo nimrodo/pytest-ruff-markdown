@@ -18,17 +18,6 @@ class RuffViolations(Exception):
         self.violations = violations
 
 
-def _chain(block: CodeBlock) -> list[CodeBlock]:
-    """Return block's `continues` chain, from its root ancestor to itself."""
-    chain: list[CodeBlock] = []
-    current: CodeBlock | None = block
-    while current is not None:
-        chain.append(current)
-        current = current.continues_from
-    chain.reverse()
-    return chain
-
-
 def _padded_chain_source(chain: list[CodeBlock]) -> str:
     """Concatenate chain's Blocks at their real markdown line positions."""
     last = chain[-1]
@@ -46,8 +35,7 @@ def lint_block(block: CodeBlock, markdown_path: Path) -> list[dict[str, Any]]:
 
     Returns only the violations attributable to block's own lines.
     """
-    chain = _chain(block)
-    padded_source = _padded_chain_source(chain)
+    padded_source = _padded_chain_source(block.chain)
 
     proc = run_ruff(
         [

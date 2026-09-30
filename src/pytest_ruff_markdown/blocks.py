@@ -76,8 +76,19 @@ class CodeBlock:
         # Set to the immediately preceding Block when the fence was
         # immediately preceded by the `<!-- pytest-ruff-markdown: continues
         # -->` marker. That Block may itself have a `continues_from`,
-        # forming a chain; linting walks it to build up context.
+        # forming a chain; linting and formatting walk it for context.
         self.continues_from = continues_from
+
+    @property
+    def chain(self) -> list[CodeBlock]:
+        """This Block's `continues` chain, from its root ancestor to itself."""
+        chain: list[CodeBlock] = []
+        current: CodeBlock | None = self
+        while current is not None:
+            chain.append(current)
+            current = current.continues_from
+        chain.reverse()
+        return chain
 
     @property
     def lines(self) -> list[str]:

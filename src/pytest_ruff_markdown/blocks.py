@@ -25,6 +25,7 @@ class CodeBlock:
         self,
         source: str,
         start_line: int,
+        end_line: int,
         index: int,
         skip_reason: str | None = None,
         continues_from: CodeBlock | None = None,
@@ -34,6 +35,11 @@ class CodeBlock:
         # 1-indexed line, in the original markdown file, of the block's own
         # first line of content (not the ``` fence line).
         self.start_line = start_line
+        # 1-indexed line of the block's own last line of content. Kept apart
+        # from `source` because trailing blank lines are real lines that
+        # `source.splitlines()` would not count. One less than `start_line`
+        # for an empty block.
+        self.end_line = end_line
         # 1-indexed position among the *collected* blocks in this file, used
         # only to build a stable, per-block synthetic ruff filename.
         self.index = index
@@ -77,6 +83,7 @@ def extract_python_blocks(
                 CodeBlock(
                     source="\n".join(lines[content_start:j]),
                     start_line=content_start + 1,
+                    end_line=j,
                     index=len(blocks) + 1,
                     skip_reason=skip_reason,
                     continues_from=continues_from,

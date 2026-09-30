@@ -79,9 +79,15 @@ uv run pytest-ruff-markdown-format docs/tutorial.md
 ```
 
 - Accepts one or more files or directories. Directories are searched
-  recursively for `.md` files.
+  recursively for `.md` files, skipping hidden directories, `node_modules`
+  and virtualenvs (any directory containing `pyvenv.cfg`). A directory
+  given explicitly is always searched.
 - A block marked with the [skip marker](#skip-marker) is left untouched.
-- `--check`: exit nonzero if anything needs reformatting, without writing.
+- A block `ruff format` cannot parse is reported as `path:line: ...` on
+  stderr and left as it is; the other blocks are still formatted, and the
+  exit code is `2`.
+- Line endings (`\n`, `\r\n`, or a mix) are preserved.
+- `--check`: exit `1` if anything needs reformatting, without writing.
 - `--diff`: same as `--check`, but also print a unified diff.
 
 These flags mirror `ruff format --check`/`--diff` itself, and are intended

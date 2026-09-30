@@ -168,6 +168,8 @@ def format_markdown_text(
         try:
             parts = _format_chain(chain, markdown_path)
         except BlockFormatError as error:
+            # A Skip-Marked Block is the user's to keep as it is, so a failure
+            # in it goes unreported; the chain it breaks is left untouched.
             if error.block.skip_reason is not None:
                 continue
             if on_error is None:
